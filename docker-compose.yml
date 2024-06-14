@@ -25,19 +25,20 @@ services:
     image: mariadb:10.11
     restart: always
     environment:
-      - "MYSQL_USER=${MYSQL_USER:-misp}"
-      - "MYSQL_PASSWORD=${MYSQL_PASSWORD:-example}"
-      - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-password}"
-      - "MYSQL_DATABASE=${MYSQL_DATABASE:-misp}"
+       - MYSQL_ROOT_PASSWORD=rootpassword
+       - MYSQL_DATABASE=misp
+       - MYSQL_USER=misp
+       - MYSQL_PASSWORD=examplepassword
     volumes:
-      - mysql_data:/var/lib/mysql
+       - mysql_data:/var/lib/mysql
+       - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     cap_add:
-      - SYS_NICE  # CAP_SYS_NICE Prevent runaway mysql log
+       - SYS_NICE
     healthcheck:
-      test: mysqladmin --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD status
-      interval: 2s
-      timeout: 1s
-      retries: 3
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root --password=rootpassword || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
       start_period: 30s
 
   misp-core:
